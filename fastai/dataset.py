@@ -423,7 +423,7 @@ def concat_datasets_for_detection(fnames, ys, transform, path):
 class ObjectDetectionData(ImageData):
     @classmethod
     def from_csv(cls, path, folder, csv_fname, bs=64, tfms=(None,None),
-               val_idxs=None, suffix='', test_name=None, skip_header=True, num_workers=8):
+               val_idxs=None, val_ratio=0.1, suffix='', test_name=None, skip_header=True, num_workers=8):
         """ Read in images and associated bounding boxes with labels given as a CSV file.
 
         The csv file needs to contain three columns - first one containing file names, second one classes and the third one
@@ -464,12 +464,12 @@ class ObjectDetectionData(ImageData):
         fnames,y = df.index.values,[df.values[:, i] for i in range(df.shape[1])]
         full_names = [os.path.join(folder,str(fn)+suffix) for fn in fnames]
         return cls.from_names_and_arrays(path, full_names, y, classes, val_idxs, test_name,
-                num_workers=num_workers, tfms=tfms, bs=bs)
+                val_ratio=val_ratio, num_workers=num_workers, tfms=tfms, bs=bs)
 
     @classmethod
     def from_names_and_arrays(cls, path, fnames, y, classes, val_idxs=None, test_name=None,
-            num_workers=8, tfms=(None,None), bs=64):
-        val_idxs = get_cv_idxs(len(fnames)) if val_idxs is None else val_idxs
+            num_workers=8, tfms=(None,None), bs=64, val_ratio=0.1):
+        val_idxs = get_cv_idxs(len(fnames), val_pct=val_ratio) if val_idxs is None else val_idxs
         (val_fnames, trn_fnames), *ys = split_by_idx(val_idxs, np.array(fnames), *y)
 
         test_fnames = read_dir(path, test_name) if test_name else None
