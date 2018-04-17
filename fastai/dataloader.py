@@ -1,5 +1,5 @@
 import torch, queue
-from torch.utils.data.sampler import SequentialSampler, RandomSampler, BatchSampler
+from torch.utils.data.sampler import Sampler, SequentialSampler, RandomSampler, BatchSampler
 from .imports import *
 from .core import *
 import collections,sys,traceback,threading
@@ -88,3 +88,28 @@ class DataLoader(object):
                     for batch in e.map(self.get_batch, c):
                         yield get_tensor(batch, self.pin_memory, self.half)
 
+class RandomSamplerWithEpochSize(Sampler):
+    """Yields epochs of specified sizes. Iterates over all examples in a data_source in random
+    order. Ensures all examples have been trained on before beginning the next iteration
+    over the data_source.
+    """
+    def __init__(self, data_source, epoch_size):
+        self.n = len(data_source)
+        self.epoch_size = epoch_size
+        self._epochs = []
+
+    def __iter__(self):
+        return iter(self.next_epoch)
+
+    @property
+    def next_epoch(self):
+        if len(self._epochs) == 0: self.generate_epochs()
+        return self._epochs.pop()
+
+    def generate_epochs(self):
+        idxs = torch.randperm(self.n)
+        epochs = torch.split(idxs, self.epoch_size)
+        self._epochs = list(epochs)
+
+    def __len__(self):
+        return self.epoch_size
