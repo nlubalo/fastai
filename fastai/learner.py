@@ -356,10 +356,10 @@ class Learner():
         m = self.swa_model if use_swa else self.model
         return predict(m, dl)
 
-    def predict_with_targs(self, is_test=False, use_swa=False):
+    def predict_with_targs(self, is_test=False, use_swa=False, tensors=False):
         dl = self.data.test_dl if is_test else self.data.val_dl
         m = self.swa_model if use_swa else self.model
-        return predict_with_targs(m, dl)
+        return predict_with_targs(m, dl, tensors)
 
     def predict_dl(self, dl): return predict_with_targs(self.model, dl)[0]
 

@@ -236,8 +236,9 @@ def predict_with_targs_(m, dl):
     for *x,y in iter(dl): res.append([get_prediction(m(*VV(x))),y])
     return zip(*res)
 
-def predict_with_targs(m, dl):
+def predict_with_targs(m, dl, tensors=False):
     preda,targa = predict_with_targs_(m, dl)
+    if tensors: return torch.cat(preda), torch.cat(targa)
     return to_np(torch.cat(preda)), to_np(torch.cat(targa))
 
 # From https://github.com/ncullen93/torchsample
