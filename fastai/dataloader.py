@@ -113,3 +113,31 @@ class RandomSamplerWithEpochSize(Sampler):
 
     def __len__(self):
         return self.epoch_size
+
+class StratifiedRandomSamplerWithEpochSize(Sampler):
+    def __init__(self, data_source, epoch_size=None):
+        self.n = 2 * data_source.y.sum()
+        if not epoch_size: epoch_size = self.n
+        self.epoch_size = epoch_size
+        self._epochs = []
+
+    def __iter__(self):
+        return iter(self.next_epoch)
+
+    @property
+    def next_epoch(self):
+        if len(self._epochs) == 0: self.generate_epochs()
+        return self._epochs.pop()
+
+    def generate_epochs(self):
+        pos_ids = np.where(md.trn_ds.y)[0]
+        neg_ids = np.where(~md.trn_ds.y)[0]
+        selected_neg_ids = np.random.choice(neg_ids, int(self.n / 2), replace=False)
+        epoch_ids = np.concatenate((pos_ids, selected_neg_ids))
+        np.random.shuffle(epoch_ids)
+
+        epochs = torch.split(torch.from_numpy(epoch_ids), self.epoch_size)
+        self._epochs = list(epochs)
+
+    def __len__(self):
+        return self.epoch_size
