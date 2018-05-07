@@ -220,8 +220,9 @@ def get_prediction(x):
     if is_listy(x): x=x[0]
     return x.data
 
-def predict(m, dl):
+def predict(m, dl, tensors=False):
     preda,_ = predict_with_targs_(m, dl)
+    if tensors: return torch.cat(preda)
     return to_np(torch.cat(preda))
 
 def predict_batch(m, x):

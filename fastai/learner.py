@@ -351,10 +351,10 @@ class Learner():
         self.fit_gen(self.model, self.data, layer_opt, num_it//len(self.data.trn_dl) + 1, all_val=True, **kwargs)
         self.load('tmp')
 
-    def predict(self, is_test=False, use_swa=False):
+    def predict(self, is_test=False, use_swa=False, tensors=False):
         dl = self.data.test_dl if is_test else self.data.val_dl
         m = self.swa_model if use_swa else self.model
-        return predict(m, dl)
+        return predict(m, dl, tensors)
 
     def predict_with_targs(self, is_test=False, use_swa=False, tensors=False):
         dl = self.data.test_dl if is_test else self.data.val_dl
@@ -427,3 +427,5 @@ class Learner():
 
     def _get_crit(self, data): return F.mse_loss
 
+    def param_count(self):
+        return np.array([p.numel() for p in self.model.parameters()]).sum()
